@@ -10,7 +10,7 @@ source venv/bin/activate
 pip install -r requirements.txt
 streamlit run app.py
 ```
-Or just go the link : [World Clock](techin510lab4.azurewebsites.net)
+Or just go the link : [World Clock](https://techin510lab4.azurewebsites.net/)
 
 ## What's Included
 
