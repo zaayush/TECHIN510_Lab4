@@ -1,5 +1,6 @@
 import time
 import streamlit as st
+import yfinance as yf
 
 # Define a dictionary of locations and their corresponding time zones
 locations = {
@@ -9,39 +10,36 @@ locations = {
     # Add more locations as needed
 }
 
-# Define a dictionary of locations and their corresponding stock market updates
-stock_updates = {
-    'Seattle': {
-        'NASDAQ': '+0.5%',
-        'Apple': '+1.2%',
-        'Microsoft': '+0.8%'
-    },
-    'Delhi': {
-        'BSE Sensex': '-1.2%',
-        'Tata Motors': '+0.6%',
-        'Reliance Industries': '-0.3%'
-    },
-    'Singapore': {
-        'SGX': '+1.8%',
-        'DBS Bank': '+0.9%',
-        'Singtel': '+1.5%'
-    },
-    # Add more locations as needed
-}
 
 # Function to get the current time for a given time zone
 def get_current_time(timezone):
     return time.strftime('%d-%b-%Y   %I:%M:%S %p', time.localtime(time.time()))
 
-# Function to get the stock market update for a given location
-def get_stock_update(location):
-    return stock_updates.get(location, 'No stock market update available')
+def pick_stock_symbol(location):
+    if location == 'Seattle':
+        stock_name = 'Amazon'
+        stock_symbol = 'AMZN'
+        
+    elif location == 'Delhi':
+        stock_name = 'Reliance Industries'
+        stock_symbol = 'RELIANCE.NS'
+        
+    elif location == 'Singapore':
+        stock_name = 'DBS Group Holdings'
+        stock_symbol = 'D05.SI'
+    else:
+        return None
+    return stock_symbol, stock_name 
 
-# Function to get the top 3 growing stocks for a given location
-def get_top_growing_stocks(location):
-    stocks = stock_updates.get(location, {})
-    sorted_stocks = sorted(stocks.items(), key=lambda x: x[1], reverse=True)
-    return sorted_stocks[:3]
+
+def display_stock_data(stock_symbol, stock_name):
+    stock = yf.Ticker(stock_symbol)
+    st.subheader(f"Stock: {stock_name}")
+    stock_data = stock.history(period="360d")
+    st.line_chart(stock_data["Close"])
+    stock_data2 = stock.history(period="3d")
+    stock_data2 = stock_data2.drop(columns=['Dividends', 'Stock Splits'])
+    st.write(stock_data2)
 
 # Title of the app
 st.title('World Clock and Stock Market Update')
@@ -57,15 +55,13 @@ if selected_locations:
     for location in selected_locations:
         timezone = locations[location]
         current_time = get_current_time(timezone)
-        top_growing_stocks = get_top_growing_stocks(location)
         st.write(f'**{location}**')
         st.write(f'Current Time: {current_time}')
-        st.write('Top 3 Growing Stocks:')
-        for stock, growth in top_growing_stocks:
-            st.write(f'{stock}: {growth}')
-        st.write('---')
+        st.write('---')  # Add a separator between each location
 
-
+        # Display stock data for each selected location
+        stock_symbol, stock_name = pick_stock_symbol(location)  
+        display_stock_data(stock_symbol, stock_name)
 
 # Define CSS style for the circular display
 circle_style = '''
