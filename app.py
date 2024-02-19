@@ -1,7 +1,9 @@
+
 import time
 import streamlit as st
 import yfinance as yf
-
+from datetime import datetime
+import pytz
 # Define a dictionary of locations and their corresponding time zones
 locations = {
     'Seattle': 'US/Pacific',
@@ -12,8 +14,11 @@ locations = {
 
 
 # Function to get the current time for a given time zone
-def get_current_time(timezone):
-    return time.strftime('%d-%b-%Y   %I:%M:%S %p', time.localtime(time.time()))
+def get_current_time(tzone):
+    zone = pytz.timezone(tzone) 
+    timeinzone = datetime.now(zone)
+    currentTime = timeinzone.strftime("%d-%b-%Y   %I:%M:%S %p")
+    return currentTime
 
 def pick_stock_symbol(location):
     if location == 'Seattle':
@@ -50,18 +55,6 @@ selected_locations = st.multiselect(
     list(locations.keys())
 )
 
-# Display the time and top 3 growing stocks for each selected location
-if selected_locations:
-    for location in selected_locations:
-        timezone = locations[location]
-        current_time = get_current_time(timezone)
-        st.write(f'**{location}**')
-        st.write(f'Current Time: {current_time}')
-        st.write('---')  # Add a separator between each location
-
-        # Display stock data for each selected location
-        stock_symbol, stock_name = pick_stock_symbol(location)  
-        display_stock_data(stock_symbol, stock_name)
 
 # Define CSS style for the circular display
 circle_style = '''
@@ -82,13 +75,16 @@ if selected_locations:
     display_placeholders = {}
     for location in selected_locations:
         display_placeholders[location] = st.empty()
-
+        # Display stock data for each selected location
+        stock_symbol, stock_name = pick_stock_symbol(location)  
+        display_stock_data(stock_symbol, stock_name)
     while True:
         for location in selected_locations:
-            timezone = locations[location]
-            current_time = get_current_time(timezone)
+            tzone = locations[location]
+            current_time = get_current_time(tzone)
             display_placeholders[location].markdown(
                 f'<div style="{circle_style}">{current_time}<br><div style="text-align: center;">{location}</div></div>',
                 unsafe_allow_html=True
             )
+            
         time.sleep(1)  # Update every second
